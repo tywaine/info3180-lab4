@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<h1 class="page-header">View Images</h1>
+
+<div class="d-flex flex-wrap gap-3">
+  {% for image in images %}
+    <div class="card" style="width: 400px;">
+      <img src="{{ url_for('get_image', filename=image) }}" class="card-img-top img-fluid" alt="{{ image }}">
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

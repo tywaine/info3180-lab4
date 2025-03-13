@@ -1,6 +1,6 @@
 import os
 from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash, session, abort
+from flask import render_template, request, redirect, url_for, flash, session, abort, send_from_directory
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
@@ -23,6 +23,26 @@ def about():
     """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
 
+@app.route("/uploads/<filename>")
+def get_image(filename):
+    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+
+def get_uploaded_images():
+    upload_folder = os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER'])
+    images = []
+
+    for subdir, dirs, files in os.walk(upload_folder):
+        for file in files:
+            if file.endswith((".png", ".jpg", ".jpeg")):
+                images.append(file)
+
+    return images
+
+@app.route("/files")
+@login_required
+def files():
+    imageList = get_uploaded_images()
+    return render_template("files.html", images=imageList)
 
 @app.route('/upload', methods=['POST', 'GET'])
 @login_required
@@ -75,6 +95,12 @@ def login():
         flash('Logged in successfully!', 'success')
         return redirect(url_for("upload"))  # The user should be redirected to the upload form instead
     return render_template("login.html", form=form)
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for("home"))
 
 # user_loader callback. This callback is used to reload the user object from
 # the user ID stored in the session
